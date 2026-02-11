@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SRT CN→EN Mapping Editor (Apple-style)</title>
+  <style>
+    :root{
+      --fs:24px;
+
+      /* Apple-ish light theme */
+      --bg:#f5f5f7;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --soft:#f3f4f6;
+
+      --accent:#2563eb;      /* blue */
+      --accent2:#16a34a;     /* green */
+      --danger:#dc2626;      /* red */
+      --warn:#d97706;        /* amber */
+
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
+      --shadow2: 0 6px 18px rgba(0,0,0,.06);
+      --radius:16px;
+    }
+
+    /* Global font size is controlled by --fs, updated by the dropdown */
+    *{ box-sizing:border-box; font-size:var(--fs); }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      letter-spacing: .1px;
+    }
+
+    /* Top bar */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background: rgba(245,245,247,.85);
+      backdrop-filter: blur(14px);
+      border-bottom:1px solid var(--line);
+    }
+    .topbarInner{
+      max-width:1500px;
+      margin:0 auto;
+      padding:14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; min-width:240px;
+    }
+    .logoDot{
+      width:10px; height:10px; border-radius:999px; background:var(--accent);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+    .titleBlock{ line-height:1.2; }
+    .title{
+      font-weight:700;
+      font-size:15px;
+      margin:0;
+    }
+    .subtitle{
+      margin:2px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .topRight{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .statusPill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--card);
+      box-shadow: var(--shadow2);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .statusDot{ width:8px; height:8px; border-radius:999px; background:#9ca3af; }
+    .statusPill.ok .statusDot{ background:var(--accent2); }
+    .statusPill.warn .statusDot{ background:var(--warn); }
+    .statusPill.bad .statusDot{ background:var(--danger); }
+    .statusPill b{ color:var(--text); font-weight:700; }
+
+    .select{
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:999px;
+      padding:8px 10px;
+      box-shadow: var(--shadow2);
+      color:var(--text);
+      outline:none;
+      cursor:pointer;
+    }
+    .select:focus{
+      border-color: rgba(37,99,235,.55);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+    .selectLabel{
+      color:var(--muted);
+      font-weight:600;
+      margin-right:6px;
+      white-space:nowrap;
+    }
+    .fontCtl{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--card);
+      box-shadow: var(--shadow2);
+    }
+
+    main{
+      max-width:1500px;
+      margin:0 auto;
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    @media (max-width:1100px){ .grid2{ grid-template-columns:1fr; } }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .cardHd{
+      padding:14px 14px 12px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .cardHdLeft{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .cardHdTitle{
+      font-weight:700;
+      font-size:14px;
+      margin:0;
+    }
+    .cardHdHelp{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+      max-width:62ch;
+    }
+    .cardBd{ padding:14px; }
+
+    .row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    input[type="file"]{ color:var(--muted); max-width:280px; }
+
+    input[type="text"]{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      color:var(--text);
+      outline:none;
+      min-width:240px;
+    }
+    input[type="text"]:focus{
+      border-color: rgba(37,99,235,.55);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    textarea{
+      width:100%;
+      min-height:300px;
+      resize:vertical;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      color:var(--text);
+      line-height:1.65;
+      outline:none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    textarea:focus{
+      border-color: rgba(37,99,235,.55);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    .btn{
+      border:1px solid var(--line);
+      background:var(--card);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      box-shadow: 0 1px 0 rgba(0,0,0,.02);
+      transition: transform .03s ease, box-shadow .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ border-color:#d1d5db; box-shadow: var(--shadow2); }
+    .btn:active{ transform: translateY(1px); }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; box-shadow:none; }
+
+    .btnPrimary{
+      background: var(--accent);
+      border-color: rgba(37,99,235,.85);
+      color:#fff;
+    }
+    .btnPrimary:hover{
+      border-color: rgba(37,99,235,1);
+      box-shadow: 0 10px 30px rgba(37,99,235,.18);
+    }
+    .btnDanger{
+      background: #fff;
+      color: var(--danger);
+      border-color: rgba(220,38,38,.28);
+    }
+    .btnDanger:hover{
+      border-color: rgba(220,38,38,.5);
+      box-shadow: 0 10px 26px rgba(220,38,38,.10);
+    }
+
+    .kvs{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:8px 10px;
+      margin-top:12px;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: var(--soft);
+    }
+    .kvs div{ color:var(--muted); }
+    .kvs b{ color:var(--text); font-weight:700; }
+
+    .chips{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      padding-top:10px;
+    }
+    .chip{
+      display:flex; gap:8px; align-items:center;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background: #fff;
+      color:var(--muted);
+    }
+    .chip input{ transform: translateY(1px); }
+
+    .note{
+      border:1px solid var(--line);
+      background: var(--soft);
+      border-radius:14px;
+      padding:12px;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:13px;
+    }
+    .note b{ color:var(--text); }
+
+    /* Mapping list */
+    .mapShell{ display:flex; flex-direction:column; gap:12px; }
+    .mapTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .mapTools{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--muted);
+      box-shadow: var(--shadow2);
+    }
+
+    .mapList{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      overflow:hidden;
+      background:#fff;
+      box-shadow: var(--shadow);
+    }
+    .mapListHdr{
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      background: var(--soft);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .mapScroll{
+      max-height:640px;
+      overflow:auto;
+      padding:12px;
+    }
+    .empty{ color:var(--muted); padding:6px 2px; }
+
+    .mapRow{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:12px;
+      margin-bottom:10px;
+      background:#fff;
+      box-shadow: 0 1px 0 rgba(0,0,0,.02);
+    }
+    .mapRowTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .rowMeta{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      min-width:120px;
+    }
+    .rowNum{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color:var(--muted);
+      font-weight:700;
+    }
+    .tag{
+      font-size:12px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: var(--soft);
+      color:var(--muted);
+    }
+
+    .timeInput{
+      flex:1;
+      min-width:320px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      outline:none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .timeInput:focus{
+      border-color: rgba(37,99,235,.55);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+    @media (max-width:1100px){ .timeInput{ min-width:240px; } }
+
+    .mapRowActions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+    .mapGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width:1100px){ .mapGrid{ grid-template-columns:1fr; } }
+
+    .blockTitle{
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:6px;
+    }
+    .cnBox{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background: var(--soft);
+      color:var(--text);
+      white-space:pre-wrap;
+      word-break:break-word;
+      line-height:1.65;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .enBox{
+      width:100%;
+      min-height:110px;
+      resize:vertical;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      color:var(--text);
+      line-height:1.65;
+      outline:none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .enBox:focus{
+      border-color: rgba(37,99,235,.55);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    .hidden{ display:none !important; }
+
+    .outPreview{
+      margin-top:10px;
+      white-space:pre;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      max-height:520px; /* larger since it now shows full output */
+      overflow:auto;
+      line-height:1.65;
+      box-shadow: var(--shadow2);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="topbarInner">
+      <div class="brand">
+        <div class="logoDot"></div>
+        <div class="titleBlock">
+          <p class="title">SRT CN→EN Mapping Editor</p>
+          <p class="subtitle">Replace Chinese subtitles with English line-by-line, then fix alignment using mapping edits.</p>
+        </div>
+      </div>
+
+      <div class="topRight">
+        <div class="fontCtl" title="Font size">
+          <span class="selectLabel">Font</span>
+          <select id="fontSizeSelect" class="select" aria-label="Font size"></select>
+        </div>
+
+        <div id="statusPill" class="statusPill">
+          <span class="statusDot"></span>
+          <b>Status</b><span id="statusText"> No file loaded</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div id="panels12" class="grid2">
+      <section class="card">
+        <div class="cardHd">
+          <div class="cardHdLeft">
+            <p class="cardHdTitle">1) Chinese SRT</p>
+            <p class="cardHdHelp">Load or paste your Chinese SRT. We’ll parse it into caption blocks. The CN sequence stays fixed.</p>
+          </div>
+          <div class="row">
+            <input id="srtFile" type="file" accept=".srt,text/plain" />
+            <button class="btn" id="btnPasteExample">Sample</button>
+            <button class="btn btnDanger" id="btnClearAll">Clear</button>
+          </div>
+        </div>
+        <div class="cardBd">
+          <textarea id="srtRaw" placeholder="Paste .srt here…"></textarea>
+
+          <div class="kvs">
+            <div>Caption blocks</div><b id="cnCount">0</b>
+            <div>Encoding</div><b id="encodingGuess">—</b>
+          </div>
+
+          <div style="height:1px;background:var(--line);margin:12px 0;"></div>
+          <div class="row">
+            <button class="btn btnPrimary" id="btnParseSrt">Parse SRT</button>
+            <button class="btn" id="btnExportCnText">Export CN text (.txt)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="cardHd">
+          <div class="cardHdLeft">
+            <p class="cardHdTitle">2) English Lines</p>
+            <p class="cardHdHelp">Paste English translations (one line per caption). Build a mapping, then use <b>+Above/+Below</b> to realign.</p>
+          </div>
+          <div class="row">
+            <input id="enFile" type="file" accept=".txt,text/plain,.srt" />
+            <button class="btn" id="btnNormalizeEn">Normalize</button>
+          </div>
+        </div>
+        <div class="cardBd">
+          <textarea id="enLines" placeholder="Paste English lines (one per caption)…"></textarea>
+
+          <div class="kvs">
+            <div>English lines</div><b id="enCount">0</b>
+            <div>Matching</div><b>Block # ↔ Line #</b>
+          </div>
+
+          <div class="chips">
+            <label class="chip"><input id="ignoreBlank" type="checkbox" checked /> Ignore blanks</label>
+            <label class="chip"><input id="trimLines" type="checkbox" checked /> Trim lines</label>
+            <label class="chip"><input id="collapseSpaces" type="checkbox" /> Collapse spaces</label>
+          </div>
+
+          <div style="height:1px;background:var(--line);margin:12px 0;"></div>
+          <div class="row">
+            <button class="btn btnPrimary" id="btnBuildMapping">Build mapping</button>
+            <button class="btn" id="btnMappingToEn">Export mapping → EN textarea</button>
+          </div>
+
+          <div style="height:1px;background:var(--line);margin:12px 0;"></div>
+          <div class="note">
+            <b>Mapping edit behavior</b><br/>
+            <b>+Above</b> duplicates the previous CN block, splits its time range, and shifts EN up from the current row onward.<br/>
+            <b>+Below</b> duplicates the current CN block, splits its time range, and shifts EN down around the insertion.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="cardHd">
+        <div class="cardHdLeft">
+          <p class="cardHdTitle">3) Edit Mapping</p>
+          <p class="cardHdHelp">Edit EN freely. CN is shown for reference. Adjust timecodes if needed. Then build & download the English SRT.</p>
+        </div>
+        <div class="row">
+          <button class="btn" id="btnTogglePanels">Collapse input panels</button>
+          <input id="outName" type="text" value="translated_en_US.srt" />
+          <button class="btn btnPrimary" id="btnBuildSrt">Build English SRT</button>
+          <button class="btn btnPrimary" id="btnDownload" disabled>Download</button>
+        </div>
+      </div>
+
+      <div class="cardBd">
+        <div id="diagBox" class="note" style="margin-bottom:12px;">
+          <b>Diagnostics:</b> Parse an SRT, then build mapping.
+        </div>
+
+        <div class="mapShell">
+          <div class="mapTop">
+            <div class="mapTools">
+              <button class="btn" id="btnAddTop">+ Add row at top</button>
+              <button class="btn" id="btnAddBottom">+ Add row at bottom</button>
+              <label class="chip" style="background:#fff;">
+                <input id="toggleCN" type="checkbox" checked />
+                Show CN reference
+              </label>
+            </div>
+            <div class="pill" id="mapCountPill">0 rows</div>
+          </div>
+
+          <div class="mapList">
+            <div class="mapListHdr">
+              <div style="color:var(--muted); font-size:13px;">Rows (scroll)</div>
+              <div style="color:var(--muted); font-size:13px;">Tip: Use +Above/+Below to fix alignment fast</div>
+            </div>
+            <div class="mapScroll" id="mapScroll">
+              <div id="mapEmpty" class="empty">No mapping yet — click “Build mapping”.</div>
+              <div id="mapRows"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-weight:700; margin-top:12px;">Output SRT preview</div>
+            <div style="color:var(--muted); font-size:13px; margin-top:3px;">Full output</div>
+            <div id="outPreview" class="outPreview">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function setStatus(kind, text){
+    const pill = $("statusPill");
+    pill.classList.remove("ok","warn","bad");
+    if (kind) pill.classList.add(kind);
+    $("statusText").textContent = " " + text;
+  }
+
+  // Font size dropdown (14–35px) applied globally via :root --fs
+  const FONT_MIN = 14, FONT_MAX = 35, FONT_DEFAULT = 14;
+  function initFontSize(){
+    const sel = $("fontSizeSelect");
+    sel.innerHTML = "";
+    for (let px = FONT_MIN; px <= FONT_MAX; px++){
+      const opt = document.createElement("option");
+      opt.value = String(px);
+      opt.textContent = px + "px";
+      if (px === FONT_DEFAULT) opt.selected = true;
+      sel.appendChild(opt);
+    }
+    const saved = localStorage.getItem("srt_ui_font_px");
+    const startPx = saved ? parseInt(saved, 10) : FONT_DEFAULT;
+    if (!Number.isNaN(startPx) && startPx >= FONT_MIN && startPx <= FONT_MAX){
+      sel.value = String(startPx);
+      document.documentElement.style.setProperty("--fs", startPx + "px");
+    }
+    sel.addEventListener("change", () => {
+      const px = parseInt(sel.value, 10);
+      if (!Number.isNaN(px)){
+        document.documentElement.style.setProperty("--fs", px + "px");
+        localStorage.setItem("srt_ui_font_px", String(px));
+      }
+    });
+  }
+
+  function detectBOM(text){
+    if (text && text.charCodeAt(0) === 0xFEFF) return "UTF-8 BOM";
+    return "UTF-8/unknown";
+  }
+  function normalizeNewlines(s){
+    return (s || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  }
+  function downloadText(filename, content){
+    const blob = new Blob([content], { type:"text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // Time helpers
+  function parseTimeToMs(t){
+    const m = String(t || "").trim().match(/^(\d{1,2}):(\d{2}):(\d{2}),(\d{3})$/);
+    if (!m) return null;
+    const hh = parseInt(m[1],10), mm = parseInt(m[2],10), ss = parseInt(m[3],10), ms = parseInt(m[4],10);
+    if ([hh,mm,ss,ms].some(x => Number.isNaN(x))) return null;
+    return (((hh*60 + mm)*60 + ss) * 1000) + ms;
+  }
+  function msToTime(ms){
+    ms = Math.max(0, Math.round(ms));
+    const hh = Math.floor(ms / 3600000); ms -= hh*3600000;
+    const mm = Math.floor(ms / 60000);   ms -= mm*60000;
+    const ss = Math.floor(ms / 1000);    ms -= ss*1000;
+    const pad2 = (n) => String(n).padStart(2,"0");
+    const pad3 = (n) => String(n).padStart(3,"0");
+    return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)},${pad3(ms)}`;
+  }
+  function parseTimeLine(tl){
+    const m = String(tl || "").trim().match(/^(.+?)\s*-->\s*(.+?)(\s+.*)?$/);
+    if (!m) return null;
+    const start = parseTimeToMs(m[1].trim());
+    const end   = parseTimeToMs(m[2].trim());
+    if (start === null || end === null) return null;
+    return { start, end, tail: (m[3] || "") };
+  }
+  function makeTimeLine(startMs, endMs, tail){
+    return `${msToTime(startMs)} --> ${msToTime(endMs)}${tail || ""}`;
+  }
+  function splitAnchorTimeIntoHalves(anchorRow, newRow){
+    const parsed = parseTimeLine(anchorRow.timeLine || "");
+    if (!parsed) return false;
+    const { start, end, tail } = parsed;
+    const dur = end - start;
+    if (dur <= 1) return false;
+    const mid = start + Math.floor(dur / 2);
+    const midClamped = Math.min(end - 1, Math.max(start + 1, mid));
+    anchorRow.timeLine = makeTimeLine(start, midClamped, tail);
+    newRow.timeLine    = makeTimeLine(midClamped, end, tail);
+    return true;
+  }
+
+  // SRT parse/build
+  function parseSRT(srt){
+    const text = normalizeNewlines(srt).trim();
+    const chunks = text.split(/\n{2,}/g).map(c => c.trim()).filter(Boolean);
+    const blocks = [];
+    for (const chunk of chunks){
+      const lines = chunk.split("\n");
+      if (lines.length < 2) continue;
+
+      const idxLine = lines[0].trim();
+      const timeLine = lines[1].trim();
+      const timeOk = /-->/g.test(timeLine);
+
+      if (!timeOk && lines.length >= 2 && /-->/g.test(lines[0])) {
+        blocks.push({
+          idxLine: String(blocks.length + 1),
+          timeLine: lines[0].trim(),
+          textLines: lines.slice(1),
+        });
+        continue;
+      }
+      blocks.push({ idxLine, timeLine, textLines: lines.slice(2) });
+    }
+    for (const b of blocks){
+      b.rawText = (b.textLines || []).join("\n");
+    }
+    return blocks;
+  }
+
+  function buildSRTFromRows(rows){
+    const out = [];
+    for (let i=0; i<rows.length; i++){
+      const r = rows[i];
+      out.push(String(i+1));
+      out.push((r.timeLine || "").trim());
+      const rep = (r.enText ?? "");
+      if (rep.includes("\n")) out.push(...rep.split("\n"));
+      else out.push(rep);
+      out.push("");
+    }
+    return out.join("\n").trim() + "\n";
+  }
+
+  function getEnglishLines(raw, opts){
+    let t = normalizeNewlines(raw);
+    let lines = t.split("\n");
+    if (opts.trimLines) lines = lines.map(l => l.trim());
+    if (opts.collapseSpaces) lines = lines.map(l => l.replace(/\s+/g, " "));
+    if (opts.ignoreBlank) lines = lines.filter(l => l.trim().length > 0);
+    return lines;
+  }
+
+  // State
+  let currentBlocks = [];
+  let mapRows = [];
+  let builtSRT = "";
+
+  function updateEnCount(){
+    const lines = getEnglishLines($("enLines").value, {
+      ignoreBlank: $("ignoreBlank").checked,
+      trimLines: $("trimLines").checked,
+      collapseSpaces: $("collapseSpaces").checked
+    });
+    $("enCount").textContent = String(lines.length);
+  }
+  function updateMapCount(){ $("mapCountPill").textContent = `${mapRows.length} rows`; }
+
+  function diagnostics(){
+    const cnN = currentBlocks.length;
+    if (!cnN) return `<b>Diagnostics:</b> Parse an SRT first.`;
+    if (!mapRows.length) return `<b>Diagnostics:</b> Parsed <b>${cnN}</b> blocks. Now build mapping.`;
+
+    const dupCount = mapRows.filter(r => r.isDup).length;
+    const diff = mapRows.length - cnN;
+    let msg = `<b>Diagnostics:</b> Rows: <b>${mapRows.length}</b> | Original CN blocks: <b>${cnN}</b> | DUP rows: <b>${dupCount}</b>.`;
+    if (diff > 0) msg += ` Output will have <b>${diff}</b> more blocks than original.`;
+    if (diff < 0) msg += ` Output will have <b>${-diff}</b> fewer blocks than original.`;
+    return msg;
+  }
+
+  function renderMapping(){
+    const wrap = $("mapRows");
+    const empty = $("mapEmpty");
+    wrap.innerHTML = "";
+
+    if (!mapRows.length){
+      empty.classList.remove("hidden");
+      updateMapCount();
+      $("diagBox").innerHTML = diagnostics();
+      return;
+    }
+    empty.classList.add("hidden");
+
+    const showCN = $("toggleCN").checked;
+
+    mapRows.forEach((r, i) => {
+      const card = document.createElement("div");
+      card.className = "mapRow";
+
+      const top = document.createElement("div");
+      top.className = "mapRowTop";
+
+      const meta = document.createElement("div");
+      meta.className = "rowMeta";
+
+      const num = document.createElement("span");
+      num.className = "rowNum";
+      num.textContent = `#${i+1}`;
+      meta.appendChild(num);
+
+      if (r.isDup){
+        const t = document.createElement("span");
+        t.className = "tag";
+        t.textContent = "DUP";
+        meta.appendChild(t);
+      } else if (r.isNew){
+        const t = document.createElement("span");
+        t.className = "tag";
+        t.textContent = "NEW";
+        meta.appendChild(t);
+      }
+      top.appendChild(meta);
+
+      const time = document.createElement("input");
+      time.className = "timeInput";
+      time.value = r.timeLine || "";
+      time.placeholder = "00:00:00,000 --> 00:00:00,000";
+      time.addEventListener("input", () => { r.timeLine = time.value; });
+      top.appendChild(time);
+
+      const actions = document.createElement("div");
+      actions.className = "mapRowActions";
+
+      const btnAbove = document.createElement("button");
+      btnAbove.className = "btn";
+      btnAbove.textContent = "+ Above";
+      btnAbove.addEventListener("click", () => insertRow(i, true));
+
+      const btnBelow = document.createElement("button");
+      btnBelow.className = "btn";
+      btnBelow.textContent = "+ Below";
+      btnBelow.addEventListener("click", () => insertRow(i, false));
+
+      const btnDel = document.createElement("button");
+      btnDel.className = "btn btnDanger";
+      btnDel.textContent = "Delete";
+      btnDel.addEventListener("click", () => deleteRow(i));
+
+      actions.appendChild(btnAbove);
+      actions.appendChild(btnBelow);
+      actions.appendChild(btnDel);
+      top.appendChild(actions);
+
+      card.appendChild(top);
+
+      const grid = document.createElement("div");
+      grid.className = "mapGrid";
+
+      const cnCol = document.createElement("div");
+      cnCol.className = showCN ? "" : "hidden";
+      cnCol.innerHTML = `<div class="blockTitle">CN reference</div><div class="cnBox"></div>`;
+      cnCol.querySelector(".cnBox").textContent = r.cnText || "(empty CN reference)";
+      grid.appendChild(cnCol);
+
+      const enCol = document.createElement("div");
+      enCol.innerHTML = `<div class="blockTitle">EN (editable)</div>`;
+      const en = document.createElement("textarea");
+      en.className = "enBox";
+      en.value = r.enText || "";
+      en.placeholder = "English translation…";
+      en.addEventListener("input", () => { r.enText = en.value; });
+      enCol.appendChild(en);
+      grid.appendChild(enCol);
+
+      card.appendChild(grid);
+      wrap.appendChild(card);
+    });
+
+    updateMapCount();
+    $("diagBox").innerHTML = diagnostics();
+  }
+
+  function scrollToRow(index){
+    const card = $("mapRows").children[index];
+    if (!card) return;
+    card.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
+
+  // Mapping-edit insert logic + EN stream shift
+  function insertRow(index, above){
+    if (!mapRows.length) return;
+
+    const enBefore = mapRows.map(r => r.enText || "");
+
+    if (above){
+      const anchorIdx = index - 1;
+
+      if (anchorIdx < 0){
+        const cur = mapRows[index];
+        const newRow = { timeLine: cur?.timeLine || "", cnText: cur?.cnText || "", enText:"", isNew:false, isDup:true };
+        mapRows.splice(index, 0, newRow);
+        for (let j = index; j < mapRows.length; j++) mapRows[j].enText = enBefore[j] || "";
+        renderMapping(); scrollToRow(index); return;
+      }
+
+      const anchor = mapRows[anchorIdx];
+      const newRow = { timeLine:"", cnText: anchor.cnText || "", enText:"", isNew:false, isDup:true };
+
+      const ok = splitAnchorTimeIntoHalves(anchor, newRow);
+      if (!ok) newRow.timeLine = anchor.timeLine || "";
+
+      mapRows.splice(index, 0, newRow);
+
+      for (let j = index; j < mapRows.length; j++) mapRows[j].enText = enBefore[j] || "";
+
+      renderMapping(); scrollToRow(index); return;
+    }
+
+    const anchor = mapRows[index];
+    const newRow = { timeLine:"", cnText: anchor.cnText || "", enText:"", isNew:false, isDup:true };
+
+    const ok = splitAnchorTimeIntoHalves(anchor, newRow);
+    if (!ok) newRow.timeLine = anchor.timeLine || "";
+
+    mapRows.splice(index + 1, 0, newRow);
+
+    for (let j = index; j < mapRows.length; j++){
+      if (j === index) mapRows[j].enText = enBefore[index + 1] || "";
+      else if (j === index + 1) mapRows[j].enText = enBefore[index] || "";
+      else mapRows[j].enText = enBefore[j - 1] || "";
+    }
+
+    renderMapping(); scrollToRow(index + 1);
+  }
+
+  function deleteRow(index){
+    mapRows.splice(index, 1);
+    renderMapping();
+    scrollToRow(Math.max(0, index-1));
+  }
+
+  // Collapsible panels 1 & 2
+  let panelsCollapsed = false;
+  function setPanelsCollapsed(collapsed){
+    panelsCollapsed = collapsed;
+    const wrapper = $("panels12");
+    wrapper.classList.toggle("hidden", collapsed);
+    $("btnTogglePanels").textContent = collapsed ? "Expand input panels" : "Collapse input panels";
+    localStorage.setItem("srt_panels_collapsed", collapsed ? "1" : "0");
+  }
+  $("btnTogglePanels").addEventListener("click", () => setPanelsCollapsed(!panelsCollapsed));
+
+  // UI wiring
+  $("btnPasteExample").addEventListener("click", () => {
+    $("srtRaw").value =
+`1
+00:00:01,000 --> 00:00:05,000
+大家好，欢迎回来。
+
+2
+00:00:05,200 --> 00:00:09,200
+今天我们来聊一个问题：
+为什么字幕对齐这么麻烦？
+
+3
+00:00:09,500 --> 00:00:14,500
+这个工具可以一行一行替换。`;
+    $("enLines").value =
+`Hello everyone, welcome back.
+Today we’re going to talk about a question:
+Why is subtitle alignment so annoying?
+This tool can replace lines one by one.`;
+    updateEnCount();
+    setStatus("warn","Loaded sample (not parsed)");
+  });
+
+  $("btnClearAll").addEventListener("click", () => {
+    $("srtRaw").value = "";
+    $("enLines").value = "";
+    currentBlocks = [];
+    mapRows = [];
+    builtSRT = "";
+    $("cnCount").textContent = "0";
+    $("enCount").textContent = "0";
+    $("encodingGuess").textContent = "—";
+    $("btnDownload").disabled = true;
+    $("outPreview").textContent = "—";
+    $("diagBox").innerHTML = `<b>Diagnostics:</b> Cleared.`;
+    setStatus(null, "No file loaded");
+    renderMapping();
+  });
+
+  $("srtFile").addEventListener("change", async (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const text = await f.text();
+    $("srtRaw").value = text;
+    $("encodingGuess").textContent = detectBOM(text);
+    setStatus("warn", "Loaded SRT (not parsed)");
+  });
+
+  $("enFile").addEventListener("change", async (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const text = await f.text();
+    if (f.name.toLowerCase().endsWith(".srt")) {
+      const blocks = parseSRT(text);
+      const lines = blocks.map(b => (b.rawText || "").replace(/\n/g, " ").trim());
+      $("enLines").value = lines.join("\n") + "\n";
+    } else {
+      $("enLines").value = text;
+    }
+    updateEnCount();
+  });
+
+  ["enLines","ignoreBlank","trimLines","collapseSpaces"].forEach(id => {
+    $(id).addEventListener("input", updateEnCount);
+    $(id).addEventListener("change", updateEnCount);
+  });
+
+  $("btnNormalizeEn").addEventListener("click", () => {
+    const lines = getEnglishLines($("enLines").value, {
+      ignoreBlank: $("ignoreBlank").checked,
+      trimLines: $("trimLines").checked,
+      collapseSpaces: $("collapseSpaces").checked
+    });
+    $("enLines").value = lines.join("\n") + (lines.length ? "\n" : "");
+    updateEnCount();
+  });
+
+  $("btnParseSrt").addEventListener("click", () => {
+    const raw = $("srtRaw").value;
+    if (!raw.trim()){
+      $("diagBox").innerHTML = `<b>Diagnostics:</b> No SRT content found.`;
+      setStatus("bad", "Missing SRT");
+      return;
+    }
+    currentBlocks = parseSRT(raw);
+    $("cnCount").textContent = String(currentBlocks.length);
+    $("encodingGuess").textContent = detectBOM(raw);
+    mapRows = [];
+    builtSRT = "";
+    $("btnDownload").disabled = true;
+    $("outPreview").textContent = "—";
+    setStatus("ok", `Parsed ${currentBlocks.length} blocks`);
+    $("diagBox").innerHTML = `<b>Diagnostics:</b> Parsed <b>${currentBlocks.length}</b> blocks. Now build mapping.`;
+    renderMapping();
+  });
+
+  $("btnExportCnText").addEventListener("click", () => {
+    if (!currentBlocks.length){
+      currentBlocks = parseSRT($("srtRaw").value);
+      $("cnCount").textContent = String(currentBlocks.length);
+    }
+    if (!currentBlocks.length){
+      $("diagBox").innerHTML = `<b>Diagnostics:</b> Nothing to export. Parse an SRT first.`;
+      return;
+    }
+    const cnList = currentBlocks.map(b => (b.rawText || "").replace(/\n/g, " ").trim()).join("\n") + "\n";
+    downloadText("cn_caption_lines.txt", cnList);
+  });
+
+  $("btnBuildMapping").addEventListener("click", () => {
+    if (!currentBlocks.length){
+      $("diagBox").innerHTML = `<b>Diagnostics:</b> Parse an SRT first.`;
+      setStatus("bad", "Not parsed");
+      return;
+    }
+
+    const en = getEnglishLines($("enLines").value, {
+      ignoreBlank: $("ignoreBlank").checked,
+      trimLines: $("trimLines").checked,
+      collapseSpaces: $("collapseSpaces").checked
+    });
+
+    const n = Math.max(currentBlocks.length, en.length);
+    mapRows = [];
+    for (let i=0; i<n; i++){
+      const b = currentBlocks[i];
+      mapRows.push({
+        timeLine: b ? (b.timeLine || "") : (mapRows[i-1]?.timeLine || ""),
+        cnText: b ? (b.rawText || "") : "",
+        enText: en[i] ?? "",
+        isNew: !b,
+        isDup: false
+      });
+    }
+
+    setStatus(currentBlocks.length === en.length ? "ok" : "warn", "Mapping built");
+    $("diagBox").innerHTML = diagnostics();
+    renderMapping();
+    scrollToRow(0);
+  });
+
+  $("btnMappingToEn").addEventListener("click", () => {
+    if (!mapRows.length){
+      $("diagBox").innerHTML = `<b>Diagnostics:</b> No mapping rows to export.`;
+      return;
+    }
+    const lines = mapRows.map(r => (r.enText ?? "").replace(/\n/g, " ").trim());
+    $("enLines").value = lines.join("\n") + "\n";
+    updateEnCount();
+    $("diagBox").innerHTML = `<b>Diagnostics:</b> Exported mapping EN → textarea (one line per row).`;
+  });
+
+  $("btnAddTop").addEventListener("click", () => {
+    if (!currentBlocks.length && !mapRows.length){
+      $("diagBox").innerHTML = `<b>Diagnostics:</b> Parse an SRT first.`;
+      return;
+    }
+    if (!mapRows.length){
+      mapRows = currentBlocks.map(b => ({ timeLine:b.timeLine||"", cnText:b.rawText||"", enText:"", isNew:false, isDup:false }));
+    }
+    mapRows.unshift({ timeLine: mapRows[0]?.timeLine || "", cnText:"(manual row)", enText:"", isNew:true, isDup:false });
+    renderMapping(); scrollToRow(0);
+  });
+
+  $("btnAddBottom").addEventListener("click", () => {
+    if (!currentBlocks.length && !mapRows.length){
+      $("diagBox").innerHTML = `<b>Diagnostics:</b> Parse an SRT first.`;
+      return;
+    }
+    if (!mapRows.length){
+      mapRows = currentBlocks.map(b => ({ timeLine:b.timeLine||"", cnText:b.rawText||"", enText:"", isNew:false, isDup:false }));
+    }
+    mapRows.push({ timeLine: mapRows[mapRows.length-1]?.timeLine || "", cnText:"(manual row)", enText:"", isNew:true, isDup:false });
+    renderMapping(); scrollToRow(mapRows.length-1);
+  });
+
+  $("toggleCN").addEventListener("change", () => renderMapping());
+
+  $("btnBuildSrt").addEventListener("click", () => {
+    if (!mapRows.length){
+      $("diagBox").innerHTML = `<b>Diagnostics:</b> Build mapping first.`;
+      return;
+    }
+    for (let i=0; i<mapRows.length; i++){
+      if (!String(mapRows[i].timeLine || "").trim()){
+        mapRows[i].timeLine = mapRows[i-1]?.timeLine || mapRows[i+1]?.timeLine || "";
+      }
+    }
+
+    builtSRT = buildSRTFromRows(mapRows);
+    $("btnDownload").disabled = false;
+
+    // Full preview now
+    $("outPreview").textContent = builtSRT || "—";
+
+    $("diagBox").innerHTML = diagnostics();
+    setStatus("ok", "Built output SRT");
+  });
+
+  $("btnDownload").addEventListener("click", () => {
+    if (!builtSRT){
+      $("diagBox").innerHTML = `<b>Diagnostics:</b> Nothing to download yet. Click “Build English SRT”.`;
+      return;
+    }
+    const name = ($("outName").value || "translated_en_US.srt").trim();
+    downloadText(name, builtSRT);
+  });
+
+  // Init
+  initFontSize();
+  const savedCollapsed = localStorage.getItem("srt_panels_collapsed");
+  setPanelsCollapsed(savedCollapsed === "1");
+  updateEnCount();
+  renderMapping();
+  setStatus(null, "No file loaded");
+</script>
+</body>
+</html>
